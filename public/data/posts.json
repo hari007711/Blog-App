@@ -1,0 +1,20 @@
+[
+  {
+    "id": "1",
+    "title": "Getting Started with Next.js 14 App Router",
+    "slug": "getting-started-with-nextjs-14-app-router",
+    "content": "This is the content for the first blog post."
+  },
+  {
+    "id": "2",
+    "title": "Static Site Generation in Next.js",
+    "slug": "static-site-generation-in-nextjs",
+    "content": "Exploring the power of SSG in Next.js for performance."
+  },
+  {
+    "id": "3",
+    "title": "Server Components: A New Paradigm",
+    "slug": "server-components-a-new-paradigm",
+    "content": "Understanding how Server Components change the way we build web apps."
+  }
+]
