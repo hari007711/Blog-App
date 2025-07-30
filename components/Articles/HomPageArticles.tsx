@@ -1,3 +1,4 @@
+import api from "@/lib/api";
 import { MoveRight } from "lucide-react";
 import Link from "next/link";
 
@@ -34,17 +35,8 @@ interface Blog {
 }
 
 async function getBlogs(): Promise<Blog[]> {
-  const res = await fetch("http://localhost:3000/api/blogs", {
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    console.error("Failed to fetch blogs from local API route");
-    return [];
-  }
-
-  const data = await res.json();
-  return data.data || [];
+ const { data } = await api.get("/api/blogs?populate=*");
+ return data.data || [];
 }
 
 export default async function HomePageArticles() {

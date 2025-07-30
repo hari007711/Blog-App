@@ -1,9 +1,11 @@
-import { Suspense } from "react";
-import { Button } from "@/components/ui/button";
-import { Facebook, Link, Linkedin, Twitter } from "lucide-react";
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
+import { useParams } from "next/navigation";
 import { notFound } from "next/navigation";
-import Link2 from "next/link";
-import Loading from "./Loading";
+import { Facebook, Link, Linkedin, Twitter } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Blog {
   id: number;
@@ -26,63 +28,47 @@ interface Blog {
   };
 }
 
-interface Props {
-  params: { slug: string };
-}
-
-async function getBlogBySlug(slug: string): Promise<Blog | null> {
-  const res = await fetch(
-    `${process.env.STRAPI_API_URL}/api/blogs?filters[slug][$eq]=${slug}&populate=*`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`,
-      },
-      cache: "no-store",
-    }
+const fetchBlogBySlug = async (slug: string): Promise<Blog | null> => {
+  const { data } = await api.get(
+    `/api/blogs?filters[slug][$eq]=${slug}&populate=*`
   );
-  if (!res.ok) return null;
-  const data = await res.json();
   return data.data?.[0] || null;
-} 
+};
 
-async function getBlogs(): Promise<Blog[]> {
-  const res = await fetch(
-    `${process.env.STRAPI_API_URL}/api/blogs?populate=*`,
-    { 
-      headers: {
-        Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`,
-      },      
-      cache: "no-store",
-    }
-  );
-
-  if (!res.ok) {
-    console.error("Failed to fetch blogs from Strapi");
-    return [];
-  }
-
-  const data = await res.json();
+const fetchAllBlogs = async (): Promise<Blog[]> => {
+  const { data } = await api.get("/api/blogs?populate=*");
   return data.data || [];
-}
+};
 
-export default function BlogDetail({ params }: Props) {
-  const { slug } = params;
+export default function BlogContent() {
+  const params = useParams();
+  const slug = params.slug as string;
 
-  return (
-    <Suspense fallback={<Loading />}>
-      <BlogContent slug={slug} />
-    </Suspense>
-  );
-}
+  const {
+    data: blog,
+    isLoading: isLoadingBlog,
+    isError: isErrorBlog,
+  } = useQuery({
+    queryKey: ["blog", slug],
+    queryFn: () => fetchBlogBySlug(slug),
+  });
 
-async function BlogContent({ slug }: { slug: string }) {
-  const blog = await getBlogBySlug(slug);
-  const blogs = await getBlogs();
+  const {
+    data: blogs,
+    isLoading: isLoadingRelated,
+    isError: isErrorRelated,
+  } = useQuery({
+    queryKey: ["blogs"],
+    queryFn: fetchAllBlogs,
+  });
 
-  if (!blog) return notFound();
+  if (isLoadingBlog) return <p>Loading blog...</p>;
+  if (isErrorBlog || !blog) return notFound();
+
   const { Title, Content, Author, Domain, Time, Image, Date, Tags } =
     blog.attributes;
-  const imageUrl = `${process.env.STRAPI_API_URL}${Image?.data?.attributes?.url}`;
+
+  const imageUrl = `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${Image?.data?.attributes?.url}`;
   const formattedDate = Date?.split("-").reverse().join("-");
 
   return (
@@ -139,27 +125,29 @@ async function BlogContent({ slug }: { slug: string }) {
       <hr className="my-5" />
       <div>
         <h2 className="text-xl font-semibold mt-5 mb-5">Related Posts</h2>
+        {isLoadingRelated && <p>Loading related posts...</p>}
+        {isErrorRelated && <p>Failed to load related posts.</p>}
         <div className="flex flex-wrap gap-6">
           {blogs
-            .filter((b) => b.attributes.slug !== slug)
-            .map((blog) => {
-              const imageUrl = `${process.env.STRAPI_API_URL}${blog.attributes.Image?.data?.attributes?.url}`;
+            ?.filter((b) => b.attributes.slug !== slug)
+            .map((related) => {
+              const img = `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${related.attributes.Image?.data?.attributes?.url}`;
               return (
                 <div
-                  key={blog.id}
+                  key={related.id}
                   className="border p-4 rounded-2xl shadow w-50 transition-all duration-300 h-55"
                 >
-                  <Link2 href={`/blogs/${blog.attributes.slug}`}>
+                  <a href={`/blogs/${related.attributes.slug}`}>
                     <div className="overflow-hidden rounded-t-2xl h-[20vh]">
                       <img
-                        src={imageUrl}
-                        alt={blog.attributes.Title}
+                        src={img}
+                        alt={related.attributes.Title}
                         className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
                       />
                     </div>
-                  </Link2>
+                  </a>
                   <div className="mt-2">
-                    <h1 className="text-sm">{blog.attributes.Title}</h1>
+                    <h1 className="text-sm">{related.attributes.Title}</h1>
                   </div>
                 </div>
               );
@@ -169,22 +157,3 @@ async function BlogContent({ slug }: { slug: string }) {
     </div>
   );
 }
-
-export async function generateStaticParams() {
-  const res = await fetch(
-    `${process.env.STRAPI_API_URL}/api/blogs?populate=*`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`,
-      },
-    }
-  );
-
-  const data = await res.json();
-
-  return data.data.map((blog: any) => ({
-    slug: blog.attributes.slug,
-  }));
-}
-
-export const revalidate = 60;

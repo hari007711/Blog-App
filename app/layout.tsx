@@ -2,6 +2,7 @@ import Footer from "@/components/footer";
 import Header from "../components/Header";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
+import Providers from "./provider";
 
 export default function RootLayout({
   children,
@@ -16,7 +17,9 @@ export default function RootLayout({
             <Header />
           </nav>
         </header>
-        <main className="mx-auto flex-grow">{children}</main>
+        <Providers>
+          <div className="mx-auto flex-grow">{children}</div>
+        </Providers>
         <footer className="bg-gray-800 p-4 text-center text-white">
           <Footer />
         </footer>
