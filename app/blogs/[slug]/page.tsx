@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
-import { Facebook, Link, Linkedin, MoveRight, Twitter } from "lucide-react";
+import { Facebook, Link, Linkedin, Twitter } from "lucide-react";
 import { notFound } from "next/navigation";
 import Link2 from "next/link";
 import Loading from "./Loading";
@@ -43,15 +43,21 @@ async function getBlogBySlug(slug: string): Promise<Blog | null> {
   if (!res.ok) return null;
   const data = await res.json();
   return data.data?.[0] || null;
-}
+} 
 
 async function getBlogs(): Promise<Blog[]> {
-  const res = await fetch("http://localhost:3000/api/blogs", {
-    cache: "no-store",
-  });
+  const res = await fetch(
+    `${process.env.STRAPI_API_URL}/api/blogs?populate=*`,
+    { 
+      headers: {
+        Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`,
+      },      
+      cache: "no-store",
+    }
+  );
 
   if (!res.ok) {
-    console.error("Failed to fetch blogs from local API route");
+    console.error("Failed to fetch blogs from Strapi");
     return [];
   }
 
@@ -86,69 +92,62 @@ async function BlogContent({ slug }: { slug: string }) {
         By {Author} <span className="ml-2">{formattedDate}</span>
       </p>
       <img src={imageUrl} alt={Title} className="mt-4 rounded-lg w-full" />
-      <hr className="my-5"></hr>
+      <hr className="my-5" />
       <div className="mt-6 space-y-4">
         {Content.map((block, idx) => (
           <p key={idx}>{block.children.map((c) => c.text).join("")}</p>
         ))}
       </div>
-      <hr className="my-5"></hr>
-      <h2 className="text-xl font-semibold mt-5">Tags</h2>
+      <hr className="my-5" />
+
       {Tags && (
-        <div className="flex flex-wrap gap-2 mt-6">
-          {Tags.split(",").map((tag, index) => (
-            <span
-              key={index}
-              className="bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full"
-            >
-              {tag.trim()}
-            </span>
-          ))}
-        </div>
+        <>
+          <h2 className="text-xl font-semibold mt-5">Tags</h2>
+          <div className="flex flex-wrap gap-2 mt-6">
+            {Tags.split(",").map((tag, index) => (
+              <span
+                key={index}
+                className="bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full"
+              >
+                {tag.trim()}
+              </span>
+            ))}
+          </div>
+          <hr className="my-5" />
+        </>
       )}
-      <hr className="my-5"></hr>
+
       <div>
         <h2 className="text-xl font-semibold mt-5 mb-5">Share this post</h2>
-        <div className="flex items-center">
-          <Button
-            variant={"default"}
-            className="bg-[#2563eb] mr-5 cursor-pointer hover:bg-[#1d4ed8]"
-          >
+        <div className="flex items-center flex-wrap gap-4">
+          <Button className="bg-[#2563eb] hover:bg-[#1d4ed8] cursor-pointer">
             <Twitter />
             Twitter
           </Button>
-          <Button
-            variant={"default"}
-            className="bg-[#1e40af] mr-5 cursor-pointer hover:bg-[#1e3a8a]"
-          >
+          <Button className="bg-[#1e40af] hover:bg-[#1e3a8a] cursor-pointer">
             <Facebook /> Facebook
           </Button>
-          <Button
-            variant={"default"}
-            className="bg-[#1d4ed8] mr-5 cursor-pointer hover:bg-[#1e40af]"
-          >
+          <Button className="bg-[#1d4ed8] hover:bg-[#1e40af] cursor-pointer">
             <Linkedin /> LinkedIn
           </Button>
-          <Button
-            variant={"default"}
-            className="bg-[#4b5563] mr-5 cursor-pointer hover:bg-[#374151]"
-          >
+          <Button className="bg-[#4b5563] hover:bg-[#374151] cursor-pointer">
             <Link /> Copy Link
           </Button>
         </div>
       </div>
-      <hr className="my-5"></hr>
+
+      <hr className="my-5" />
       <div>
         <h2 className="text-xl font-semibold mt-5 mb-5">Related Posts</h2>
         <div className="flex flex-wrap gap-6">
           {blogs
-            .filter((blog) => blog.attributes.slug !== slug)
+            .filter((b) => b.attributes.slug !== slug)
             .map((blog) => {
               const imageUrl = `${process.env.STRAPI_API_URL}${blog.attributes.Image?.data?.attributes?.url}`;
               return (
                 <div
                   key={blog.id}
-                  className="border p-4 rounded-2xl shadow w-50  transition-all duration-300 h-55"
+                  className="border p-4 rounded-2xl shadow w-50 transition-all duration-300 h-55"
                 >
                   <Link2 href={`/blogs/${blog.attributes.slug}`}>
                     <div className="overflow-hidden rounded-t-2xl h-[20vh]">
@@ -159,11 +158,8 @@ async function BlogContent({ slug }: { slug: string }) {
                       />
                     </div>
                   </Link2>
-
-                  <div className=" mt-2">
-                    <h1 className="font mt-2 text-sm">
-                      {blog.attributes.Title}
-                    </h1>
+                  <div className="mt-2">
+                    <h1 className="text-sm">{blog.attributes.Title}</h1>
                   </div>
                 </div>
               );
@@ -173,3 +169,22 @@ async function BlogContent({ slug }: { slug: string }) {
     </div>
   );
 }
+
+export async function generateStaticParams() {
+  const res = await fetch(
+    `${process.env.STRAPI_API_URL}/api/blogs?populate=*`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`,
+      },
+    }
+  );
+
+  const data = await res.json();
+
+  return data.data.map((blog: any) => ({
+    slug: blog.attributes.slug,
+  }));
+}
+
+export const revalidate = 60;

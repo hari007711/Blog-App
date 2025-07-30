@@ -50,6 +50,40 @@ async function getBlogs(): Promise<Blog[]> {
 export default async function HomePageArticles() {
   const blogs = await getBlogs();
 
+  function getDomains(domain: any) {
+    if (domain == "HTML") {
+      return (
+        <div className="bg-[#3b82f6] absolute bottom-42 left-2  bg-opacity-60 text-white text-xs px-3 py-1 rounded-full">
+          {domain}
+        </div>
+      );
+    } else if (domain == "CSS") {
+      return (
+        <div className="bg-[#14A44D] absolute bottom-42 left-2  bg-opacity-60 text-white text-xs px-3 py-1 rounded-full">
+          {domain}
+        </div>
+      );
+    } else if (domain == "Javascript") {
+      return (
+        <div className="bg-[#a855f7] absolute bottom-42 left-2  bg-opacity-60 text-white text-xs px-3 py-1 rounded-full">
+          {domain}
+        </div>
+      );
+    } else if (domain == "React") {
+      return (
+        <div className="bg-[#54b4d3] absolute bottom-42 left-2  bg-opacity-60 text-white text-xs px-3 py-1 rounded-full">
+          {domain}
+        </div>
+      );
+    } else if (domain == "Next") {
+      return (
+        <div className="bg-[#E4A11B] absolute bottom-42 left-2  bg-opacity-60 text-white text-xs px-3 py-1 rounded-full">
+          {domain}
+        </div>
+      );
+    }
+  }
+
   return (
     <div className="p-4">
       <h1 className="flex justify-center text-3xl font-bold mb-4 ">
@@ -71,12 +105,17 @@ export default async function HomePageArticles() {
               return (
                 <div key={blog.id} className="">
                   <div className="border p-4 rounded-2xl shadow w-[30vw] min-w-[30vw] max-w-[32vw] transition-all duration-300 ">
-                    <div className="overflow-hidden rounded-t-2xl h-[30vh]">
+              
+                    <div className="overflow-hidden rounded-t-2xl h-[30vh] relative">
                       <img
                         src={imageUrl}
                         alt={blog.attributes.Title}
                         className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
                       />
+                      <div className="absolute bottom-2 left-2  bg-opacity-60 text-white text-xs px-3 py-1 rounded">
+                
+                        {getDomains(blog.attributes.Domain)}
+                      </div>
                     </div>
 
                     <div className="px-7 mt-2">
