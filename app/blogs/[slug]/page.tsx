@@ -1,11 +1,8 @@
-"use client";
-
-import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
-import { useParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import { Facebook, Link, Linkedin, Twitter } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link2 from "next/link";
 
 interface Blog {
   id: number;
@@ -40,50 +37,40 @@ const fetchAllBlogs = async (): Promise<Blog[]> => {
   return data.data || [];
 };
 
-export default function BlogContent() {
-  const params = useParams();
-  const slug = params.slug as string;
+export default async function BlogContent({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const slug = params.slug;
 
-  const {
-    data: blog,
-    isLoading: isLoadingBlog,
-    isError: isErrorBlog,
-  } = useQuery({
-    queryKey: ["blog", slug],
-    queryFn: () => fetchBlogBySlug(slug),
-  });
+  const blog = await fetchBlogBySlug(slug);
+  const blogs = await fetchAllBlogs();
 
-  const {
-    data: blogs,
-    isLoading: isLoadingRelated,
-    isError: isErrorRelated,
-  } = useQuery({
-    queryKey: ["blogs"],
-    queryFn: fetchAllBlogs,
-  });
-
-  if (isLoadingBlog) return <p>Loading blog...</p>;
-  if (isErrorBlog || !blog) return notFound();
+  if (!blog) return notFound();
+  console.log(blog.attributes);
+  
 
   const { Title, Content, Author, Domain, Time, Image, Date, Tags } =
     blog.attributes;
-
   const imageUrl = `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${Image?.data?.attributes?.url}`;
   const formattedDate = Date?.split("-").reverse().join("-");
 
   return (
-    <div className="px-100 mb-20">
+    <div className="px-100 mb-20 mt-20">
       <h2 className="text-2xl font-bold mt-5">{Title}</h2>
       <p className="text-sm text-gray-500 mt-2">
         By {Author} <span className="ml-2">{formattedDate}</span>
       </p>
       <img src={imageUrl} alt={Title} className="mt-4 rounded-lg w-full" />
       <hr className="my-5" />
+
       <div className="mt-6 space-y-4">
         {Content.map((block, idx) => (
           <p key={idx}>{block.children.map((c) => c.text).join("")}</p>
         ))}
       </div>
+
       <hr className="my-5" />
 
       {Tags && (
@@ -106,17 +93,17 @@ export default function BlogContent() {
       <div>
         <h2 className="text-xl font-semibold mt-5 mb-5">Share this post</h2>
         <div className="flex items-center flex-wrap gap-4">
-          <Button className="bg-[#2563eb] hover:bg-[#1d4ed8] cursor-pointer">
+          <Button className="bg-[#2563eb] hover:bg-[#1d4ed8] cursor-pointer hover:scale-110 transition-transform duration-200">
             <Twitter />
             Twitter
           </Button>
-          <Button className="bg-[#1e40af] hover:bg-[#1e3a8a] cursor-pointer">
+          <Button className="bg-[#1e40af] hover:bg-[#1e3a8a] cursor-pointer hover:scale-110 transition-transform duration-200">
             <Facebook /> Facebook
           </Button>
-          <Button className="bg-[#1d4ed8] hover:bg-[#1e40af] cursor-pointer">
+          <Button className="bg-[#1d4ed8] hover:bg-[#1e40af] cursor-pointer hover:scale-110 transition-transform duration-200">
             <Linkedin /> LinkedIn
           </Button>
-          <Button className="bg-[#4b5563] hover:bg-[#374151] cursor-pointer">
+          <Button className="bg-[#4b5563] hover:bg-[#374151] cursor-pointer hover:scale-110 transition-transform duration-200">
             <Link /> Copy Link
           </Button>
         </div>
@@ -125,8 +112,6 @@ export default function BlogContent() {
       <hr className="my-5" />
       <div>
         <h2 className="text-xl font-semibold mt-5 mb-5">Related Posts</h2>
-        {isLoadingRelated && <p>Loading related posts...</p>}
-        {isErrorRelated && <p>Failed to load related posts.</p>}
         <div className="flex flex-wrap gap-6">
           {blogs
             ?.filter((b) => b.attributes.slug !== slug)
@@ -137,7 +122,7 @@ export default function BlogContent() {
                   key={related.id}
                   className="border p-4 rounded-2xl shadow w-50 transition-all duration-300 h-55"
                 >
-                  <a href={`/blogs/${related.attributes.slug}`}>
+                  <Link2 href={`/blogs/${related.attributes.slug}`}>
                     <div className="overflow-hidden rounded-t-2xl h-[20vh]">
                       <img
                         src={img}
@@ -145,7 +130,7 @@ export default function BlogContent() {
                         className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
                       />
                     </div>
-                  </a>
+                  </Link2>
                   <div className="mt-2">
                     <h1 className="text-sm">{related.attributes.Title}</h1>
                   </div>

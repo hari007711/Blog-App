@@ -3,10 +3,10 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     const res = await fetch(
-      `${process.env.STRAPI_API_URL}/api/blogs?populate=*`,
+      `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/blogs?populate=*`,
       {
         headers: {
-          Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`,
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_API_TOKEN}`,
         },
         cache: "no-store",
       }

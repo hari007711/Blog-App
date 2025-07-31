@@ -5,6 +5,7 @@ import Autoplay from "embla-carousel-autoplay";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import api from "@/lib/api";
 
 interface Blog {
   id: number;
@@ -32,12 +33,7 @@ export default function HomePageCarousel() {
   useEffect(() => {
     async function fetchBlogs() {
       try {
-        const res = await fetch("http://localhost:3000/api/blogs", {
-          cache: "no-store",
-        });
-        if (!res.ok) throw new Error("Failed to fetch blogs");
-
-        const data = await res.json();
+        const { data } = await api.get("/api/blogs?populate=*");
         setBlogs(data.data);
       } catch (error) {
         console.error("Error fetching blogs:", error);
@@ -54,7 +50,7 @@ export default function HomePageCarousel() {
 
   useEffect(() => {
     if (!emblaApi) return;
-    onSelect(); 
+    onSelect();
     emblaApi.on("select", onSelect);
     emblaApi.on("reInit", onSelect);
   }, [emblaApi, onSelect]);
@@ -66,7 +62,6 @@ export default function HomePageCarousel() {
           {blogs.map((blog, index) => {
             const imageUrl = blog.attributes.Image?.data?.attributes?.url;
             if (!imageUrl) return null;
-
             return (
               <div
                 key={index}
@@ -77,10 +72,17 @@ export default function HomePageCarousel() {
                   alt={blog.attributes.Title}
                   fill
                   style={{ objectFit: "cover" }}
+                  className=""
                   priority
                 />
 
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center px-4 drop-shadow-lg">
+                <div className="absolute inset-0 bg-black/50 z-10" />
+
+                <div
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
+                text-white text-center px-6 py-6 drop-shadow-lg z-20 
+                  rounded-lg w-[90%] max-w-4xl"
+                >
                   <h1 className="text-5xl font-bold mb-4">
                     Welcome to Tech Blog
                   </h1>
@@ -92,13 +94,13 @@ export default function HomePageCarousel() {
                   <div className="flex justify-center mt-4">
                     <Button
                       variant="outline"
-                      className="text-black h-[8vh] w-[10vw] mr-4 text-xl cursor-pointer"
+                      className="text-black h-[8vh] w-[10vw] mr-4 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
                     >
                       Start Reading
                     </Button>
                     <Button
                       variant="outline"
-                      className="bg-background-none h-[8vh] w-[10vw] text-xl cursor-pointer border-2"
+                      className="bg-background-none h-[8vh] w-[10vw] text-xl cursor-pointer border-2 hover:scale-110 transition-transform duration-200 hover:bg-background-none hover:text-white"
                     >
                       Subscribe
                     </Button>

@@ -35,45 +35,42 @@ interface Blog {
 }
 
 async function getBlogs(): Promise<Blog[]> {
- const { data } = await api.get("/api/blogs?populate=*");
- return data.data || [];
+  const { data } = await api.get("/api/blogs?populate=*");
+  return data.data || [];
 }
 
 export default async function HomePageArticles() {
   const blogs = await getBlogs();
-
-  function getDomains(domain: any) {
-    if (domain == "HTML") {
-      return (
-        <div className="bg-[#3b82f6] absolute bottom-42 left-2  bg-opacity-60 text-white text-xs px-3 py-1 rounded-full">
-          {domain}
-        </div>
-      );
-    } else if (domain == "CSS") {
-      return (
-        <div className="bg-[#14A44D] absolute bottom-42 left-2  bg-opacity-60 text-white text-xs px-3 py-1 rounded-full">
-          {domain}
-        </div>
-      );
-    } else if (domain == "Javascript") {
-      return (
-        <div className="bg-[#a855f7] absolute bottom-42 left-2  bg-opacity-60 text-white text-xs px-3 py-1 rounded-full">
-          {domain}
-        </div>
-      );
-    } else if (domain == "React") {
-      return (
-        <div className="bg-[#54b4d3] absolute bottom-42 left-2  bg-opacity-60 text-white text-xs px-3 py-1 rounded-full">
-          {domain}
-        </div>
-      );
-    } else if (domain == "Next") {
-      return (
-        <div className="bg-[#E4A11B] absolute bottom-42 left-2  bg-opacity-60 text-white text-xs px-3 py-1 rounded-full">
-          {domain}
-        </div>
-      );
+  function getDomains(domain: string) {
+    let bgColor = "";
+    switch (domain) {
+      case "HTML":
+        bgColor = "#3b82f6";
+        break;
+      case "CSS":
+        bgColor = "#14a44D";
+        break;
+      case "Javascript":
+        bgColor = "#a855f7";
+        break;
+      case "React":
+        bgColor = "#54b4d3";
+        break;
+      case "Next":
+        bgColor = "#E4A11B";
+        break;
+      default:
+        return null;
     }
+
+    return (
+      <div
+        className="absolute bottom-42 left-2 bg-opacity-60 text-white text-xs px-3 py-1 rounded-full"
+        style={{ backgroundColor: bgColor }}
+      >
+        {domain}
+      </div>
+    );
   }
 
   return (
@@ -93,11 +90,10 @@ export default async function HomePageArticles() {
         <div className="pl-10">
           <div className="flex flex-wrap gap-6">
             {blogs.map((blog) => {
-              const imageUrl = `${process.env.STRAPI_API_URL}${blog.attributes.Image?.data?.attributes?.url}`;
+              const imageUrl = `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${blog.attributes.Image?.data?.attributes?.url}`;
               return (
                 <div key={blog.id} className="">
                   <div className="border p-4 rounded-2xl shadow w-[30vw] min-w-[30vw] max-w-[32vw] transition-all duration-300 ">
-              
                     <div className="overflow-hidden rounded-t-2xl h-[30vh] relative">
                       <img
                         src={imageUrl}
@@ -105,12 +101,11 @@ export default async function HomePageArticles() {
                         className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
                       />
                       <div className="absolute bottom-2 left-2  bg-opacity-60 text-white text-xs px-3 py-1 rounded">
-                
                         {getDomains(blog.attributes.Domain)}
                       </div>
                     </div>
 
-                    <div className="px-7 mt-2">
+                    <div className="mt-2">
                       <ul className="list-disc list-outside pl-5 flex justify-between text-gray-500">
                         <li>{blog.attributes.Author}</li>
                         <li>{blog.attributes.Domain}</li>
