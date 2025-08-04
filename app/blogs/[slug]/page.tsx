@@ -6,23 +6,19 @@ import Link2 from "next/link";
 
 interface Blog {
   id: number;
-  attributes: {
-    Title: string;
-    Content: { type: string; children: { text: string }[] }[];
-    Time: string;
-    Tags: string;
-    Author: string;
-    Domain: string;
-    slug: string;
-    Date: string;
-    Image: {
-      data: {
-        attributes: {
-          url: string;
-        };
-      };
-    };
-  };
+  // attributes: {
+  Title: string;
+  Content: { type: string; children: { text: string }[] }[];
+  Time: string;
+  Tags: string;
+  Author: string;
+  Domain: string;
+  slug: string;
+  Date: string;
+  Image: {
+    url: string;
+  }[];
+  // };
 }
 
 const fetchBlogBySlug = async (slug: string): Promise<Blog | null> => {
@@ -48,13 +44,14 @@ export default async function BlogContent({
   const blogs = await fetchAllBlogs();
 
   if (!blog) return notFound();
-  console.log(blog.attributes);
-  
 
-  const { Title, Content, Author, Domain, Time, Image, Date, Tags } =
-    blog.attributes;
-  const imageUrl = `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${Image?.data?.attributes?.url}`;
+  const { Title, Content, Author, Domain, Time, Image, Date, Tags } = blog;
+  const imageUrl = `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${blog.Image[0]?.url}`;
   const formattedDate = Date?.split("-").reverse().join("-");
+
+  {
+    console.log(blogs, "blogs");
+  }
 
   return (
     <div className="px-100 mb-20 mt-20">
@@ -112,27 +109,28 @@ export default async function BlogContent({
       <hr className="my-5" />
       <div>
         <h2 className="text-xl font-semibold mt-5 mb-5">Related Posts</h2>
-        <div className="flex flex-wrap gap-6">
+
+        <div className="flex flex-wrap justify-between gap-6">
           {blogs
-            ?.filter((b) => b.attributes.slug !== slug)
+            ?.filter((b) => b.slug !== slug)
             .map((related) => {
-              const img = `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${related.attributes.Image?.data?.attributes?.url}`;
+              const img = `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${related.Image[0]?.url}`;
               return (
                 <div
                   key={related.id}
-                  className="border p-4 rounded-2xl shadow w-50 transition-all duration-300 h-55"
+                  className="border p-4 rounded-2xl shadow w-55 transition-all duration-300 "
                 >
-                  <Link2 href={`/blogs/${related.attributes.slug}`}>
+                  <Link2 href={`/blogs/${related.slug}`}>
                     <div className="overflow-hidden rounded-t-2xl h-[20vh]">
                       <img
                         src={img}
-                        alt={related.attributes.Title}
+                        alt={related.Title}
                         className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
                       />
                     </div>
                   </Link2>
                   <div className="mt-2">
-                    <h1 className="text-sm">{related.attributes.Title}</h1>
+                    <h1 className="text-sm">{related.Title}</h1>
                   </div>
                 </div>
               );
@@ -142,3 +140,15 @@ export default async function BlogContent({
     </div>
   );
 }
+
+export async function generateStaticParams() {
+  const res = await api.get("/api/blogs?populate=*");
+
+  const data = await res.data;
+
+  return data.data.map((blog: any) => ({
+    slug: blog.slug,
+  }));
+}
+
+export const revalidate = 60;

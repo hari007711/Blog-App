@@ -17,7 +17,6 @@ export const ThemeToggle = () => {
       size="icon"
       onClick={() => {
         setTheme(isDark ? "light" : "dark");
-        console.log(isDark, "jjjjjjjj");
       }}
       className="transition-colors"
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}

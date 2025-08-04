@@ -16,22 +16,18 @@ type ContentBlock = ParagraphNode;
 
 interface Blog {
   id: number;
-  attributes: {
-    Title: string;
-    Content: ContentBlock[];
-    Time: string;
-    Tags: string;
-    Image: {
-      data: {
-        attributes: {
-          url: string;
-        };
-      };
-    };
-    Author: string;
-    Domain: string;
-    slug: string;
-  };
+  // attributes: {
+  Title: string;
+  Content: ContentBlock[];
+  Time: string;
+  Tags: string;
+  Image: {
+    url: string;
+  }[];
+  Author: string;
+  Domain: string;
+  slug: string;
+  // };
 }
 
 async function getBlogs(): Promise<Blog[]> {
@@ -90,33 +86,34 @@ export default async function HomePageArticles() {
         <div className="pl-10">
           <div className="flex flex-wrap gap-6">
             {blogs.map((blog) => {
-              const imageUrl = `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${blog.attributes.Image?.data?.attributes?.url}`;
+          
+              const imageUrl = `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${blog.Image[0]?.url}`;
               return (
                 <div key={blog.id} className="">
                   <div className="border p-4 rounded-2xl shadow w-[30vw] min-w-[30vw] max-w-[32vw] transition-all duration-300 ">
                     <div className="overflow-hidden rounded-t-2xl h-[30vh] relative">
                       <img
                         src={imageUrl}
-                        alt={blog.attributes.Title}
+                        alt={blog.Title}
                         className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
                       />
                       <div className="absolute bottom-2 left-2  bg-opacity-60 text-white text-xs px-3 py-1 rounded">
-                        {getDomains(blog.attributes.Domain)}
+                        {getDomains(blog.Domain)}
                       </div>
                     </div>
 
                     <div className="mt-2">
                       <ul className="list-disc list-outside pl-5 flex justify-between text-gray-500">
-                        <li>{blog.attributes.Author}</li>
-                        <li>{blog.attributes.Domain}</li>
-                        <li>{blog.attributes.Time}</li>
+                        <li>{blog.Author}</li>
+                        <li>{blog.Domain}</li>
+                        <li>{blog.Time}</li>
                       </ul>
 
                       <h1 className="font-bold mt-2">
-                        {blog.attributes.Title}
+                        {blog.Title}
                       </h1>
                       <Link
-                        href={`/blogs/${blog.attributes.slug}`}
+                        href={`/blogs/${blog.slug}`}
                         className="flex items-center text-blue-400 cursor-pointer mt-1 hover:text-[#1d4ed8] transition-transform duration-300"
                       >
                         Read More <MoveRight className="mt-1 ml-1" />

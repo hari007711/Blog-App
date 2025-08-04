@@ -16,7 +16,7 @@ export default function RootLayout({
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
           rel="stylesheet"
-        />
+        />  
       </head>
       <body className="flex min-h-screen flex-col bg-gray-50 text-gray-800">
         <ThemeProvider attribute="class">
@@ -25,7 +25,7 @@ export default function RootLayout({
               <Header />
             </nav>
           </header>
-          <main className="mx-auto flex-grow">{children}</main> 
+          <main className=" flex-grow">{children}</main> 
           <footer className="bg-gray-800 p-4 text-center text-white">
             <Footer />
           </footer>
